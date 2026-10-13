@@ -3,26 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мой VPN</title>
+    <title>VPN Профиль</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: #0b0f19; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .card { background: #131b2e; border: 1px solid #1e293b; border-radius: 24px; padding: 28px; width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); text-align: center; }
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: bold; margin-bottom: 12px; }
-        .badge-active { background: #059669; color: #ecfdf5; }
-        .badge-disabled { background: #dc2626; color: #fef2f2; }
-        h2 { margin: 0 0 16px; font-size: 20px; }
-        .stats { background: #0b0f19; border-radius: 14px; padding: 14px; margin-bottom: 20px; text-align: left; font-size: 14px; }
+        body { background: #090d16; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { background: #111827; border: 1px solid #1f2937; border-radius: 24px; padding: 26px; width: 100%; max-width: 410px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; }
+        
+        /* Табы устройств */
+        .tabs { display: flex; background: #090d16; padding: 4px; border-radius: 14px; margin-bottom: 20px; border: 1px solid #1f2937; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; color: #94a3b8; font-weight: 600; font-size: 14px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { background: #1e293b; color: #38bdf8; }
+
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+        .badge-active { background: #064e3b; color: #34d399; }
+        .badge-disabled { background: #450a0a; color: #f87171; }
+        h2 { margin: 4px 0 16px; font-size: 22px; color: #f8fafc; }
+
+        /* Блок статистики */
+        .stats-box { background: #0b1120; border-radius: 16px; padding: 16px; border: 1px solid #1e293b; margin-bottom: 20px; text-align: left; font-size: 14px; }
         .stat-line { display: flex; justify-content: space-between; margin-bottom: 8px; color: #94a3b8; }
         .stat-line strong { color: #f8fafc; }
-        .progress-bar { height: 8px; background: #1e293b; border-radius: 99px; overflow: hidden; margin-top: 10px; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); width: 0%; }
-        #qrcode { background: #fff; padding: 12px; border-radius: 12px; display: inline-block; margin-bottom: 20px; }
-        .btn { display: block; width: 100%; padding: 12px; border-radius: 12px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; margin-bottom: 8px; font-size: 14px; }
-        .btn-primary { background: #38bdf8; color: #0b0f19; }
+        .progress-bar { height: 9px; background: #1e293b; border-radius: 99px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; width: 0%; transition: width 0.4s ease, background 0.4s ease; }
+
+        #qrcode { background: #ffffff; padding: 12px; border-radius: 16px; display: inline-flex; justify-content: center; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(255,255,255,0.05); }
+
+        /* Кнопки */
+        .btn-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 12px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; font-size: 14px; transition: 0.15s; }
+        .btn:active { transform: scale(0.98); }
+        .btn-hiddify { background: #ff5722; color: #ffffff; }
+        .btn-singbox { background: #38bdf8; color: #090d16; }
         .btn-secondary { background: #1e293b; color: #cbd5e1; }
-        .error { color: #f87171; font-size: 14px; }
+        .btn-tg { background: #0088cc; color: #ffffff; }
+
+        /* Аккордеон инструкции */
+        details { background: #0b1120; border: 1px solid #1e293b; border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; text-align: left; font-size: 13px; color: #94a3b8; }
+        details summary { cursor: pointer; font-weight: 600; color: #cbd5e1; user-select: none; }
+        details p, details ol { margin: 10px 0 0; padding-left: 18px; line-height: 1.5; }
+        details li { margin-bottom: 4px; }
+        details a { color: #38bdf8; text-decoration: none; }
+
+        .error { color: #f87171; padding: 20px; }
     </style>
 </head>
 <body>
@@ -32,54 +55,125 @@
 </div>
 
 <script>
-    // Твой бесплатный HTTPS бэкенд
     const API_BASE = "https://2.27.29.68.sslip.io:8443";
-    
+    const TG_ADMIN = "https://t.me/DanMilk"; // ВСТАВЬ СВОЙ ТЕЛЕГРАМ ДЛЯ СВЯЗИ
+
+    let profileData = null;
+    let activeDevice = "main"; // "main" или "pc"
+
     function formatGB(bytes) {
         if (!bytes || bytes <= 0) return "0 GB";
         return (bytes / (1024 ** 3)).toFixed(2) + " GB";
     }
 
-    async function loadProfile() {
-        const userKey = window.location.hash.replace("#", "").trim();
+    function getDaysText(expiryMs) {
+        if (!expiryMs || expiryMs <= 0) return "Бессрочно";
+        const diffDays = Math.ceil((expiryMs * 1000 - Date.now()) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) return "Истёк";
+        if (diffDays === 0) return "Истекает сегодня";
+        return `Осталось ${diffDays} дн.`;
+    }
+
+    function render() {
         const app = document.getElementById("app");
+        const current = profileData[activeDevice] || profileData.main;
+        
+        if (!current) {
+            app.innerHTML = '<div class="error">Профиль для выбранного устройства отсутствует.</div>';
+            return;
+        }
+
+        const usedStr = formatGB(current.used_bytes);
+        const totalStr = current.total_bytes > 0 ? formatGB(current.total_bytes) : "Безлимит";
+        
+        let pct = 0;
+        let barColor = "linear-gradient(90deg, #10b981, #06b6d4)";
+        if (current.total_bytes > 0) {
+            pct = Math.min(100, Math.round((current.used_bytes / current.total_bytes) * 100));
+            if (pct > 75) barColor = "linear-gradient(90deg, #f59e0b, #ea580c)";
+            if (pct > 90) barColor = "linear-gradient(90deg, #ef4444, #dc2626)";
+        }
+
+        const daysText = getDaysText(current.expiry);
+        const subUrl = current.sub_url;
+
+        // Диплинки
+        const hiddifyLink = `hiddify://install-sub?url=${encodeURIComponent(subUrl)}`;
+        const singboxLink = `sing-box://import-remote-profile?url=${encodeURIComponent(subUrl)}#${encodeURIComponent(current.name)}`;
+
+        app.innerHTML = `
+            ${profileData.pc ? `
+            <div class="tabs">
+                <button class="tab-btn ${activeDevice === 'main' ? 'active' : ''}" onclick="switchDevice('main')">📱 Телефон</button>
+                <button class="tab-btn ${activeDevice === 'pc' ? 'active' : ''}" onclick="switchDevice('pc')">💻 ПК (_pc)</button>
+            </div>
+            ` : ''}
+
+            <span class="badge ${current.enable ? 'badge-active' : 'badge-disabled'}">
+                ${current.enable ? 'Активен' : 'Отключен'}
+            </span>
+            <h2>${current.name}</h2>
+
+            <div class="stats-box">
+                <div class="stat-line"><span>Расход трафика:</span> <strong>${usedStr} / ${totalStr}</strong></div>
+                <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%; background: ${barColor};"></div></div>
+                <div class="stat-line" style="margin-top: 8px;"><span>Срок действия:</span> <strong>${daysText}</strong></div>
+            </div>
+
+            <div id="qrcode"></div>
+
+            <div class="btn-group">
+                <a href="${hiddifyLink}" class="btn btn-hiddify">🚀 Подключить в Hiddify</a>
+                <a href="${singboxLink}" class="btn btn-singbox">📦 Подключить в sing-box</a>
+                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${subUrl}'); alert('Ссылка скопирована!');">📋 Скопировать ссылку</button>
+                <a href="${subUrl}" download="${current.name}.json" target="_blank" class="btn btn-secondary">💾 Скачать конфиг файлом</a>
+            </div>
+
+            <details>
+                <summary>📖 Инструкция: как подключиться</summary>
+                <ol>
+                    <li>Установите приложение <b>Hiddify</b> или <b>sing-box</b> на устройство.</li>
+                    <li>Нажмите оранжевую или синюю кнопку выше — профиль импортируется автоматически.</li>
+                    <li>Либо отсканируйте QR-код через камеру внутри приложения.</li>
+                    <li>Выберите добавленный профиль и нажмите «Подключить».</li>
+                </ol>
+            </details>
+
+            <a href="${TG_ADMIN}" target="_blank" class="btn btn-tg">💬 Написать админу</a>
+        `;
+
+        new QRCode(document.getElementById("qrcode"), {
+            text: subUrl,
+            width: 170,
+            height: 170
+        });
+    }
+
+    window.switchDevice = function(dev) {
+        activeDevice = dev;
+        render();
+    };
+
+    async function loadData() {
+        const app = document.getElementById("app");
+        const userKey = window.location.hash.replace("#", "").trim();
 
         if (!userKey) {
-            app.innerHTML = '<div class="error">В ссылке не указан идентификатор пользователя.</div>';
+            app.innerHTML = '<div class="error">Пользователь не указан в адресной строке (#name).</div>';
             return;
         }
 
         try {
             const res = await fetch(`${API_BASE}/api/user/${encodeURIComponent(userKey)}`);
             if (!res.ok) throw new Error("Пользователь не найден");
-
-            const u = await res.json();
-            const usedStr = formatGB(u.used_bytes);
-            const totalStr = u.total_bytes > 0 ? formatGB(u.total_bytes) : "Безлимит";
-            const pct = u.total_bytes > 0 ? Math.min(100, Math.round((u.used_bytes / u.total_bytes) * 100)) : 0;
-            const expireStr = u.expiry > 0 ? new Date(u.expiry * 1000).toLocaleDateString("ru-RU") : "Бессрочно";
-
-            app.innerHTML = `
-                <span class="badge ${u.enable ? 'badge-active' : 'badge-disabled'}">${u.enable ? 'Активен' : 'Отключен'}</span>
-                <h2>${u.name}</h2>
-                <div class="stats">
-                    <div class="stat-line"><span>Трафик:</span> <strong>${usedStr} / ${totalStr}</strong></div>
-                    <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%"></div></div>
-                    <div class="stat-line" style="margin-top: 10px;"><span>Истекает:</span> <strong>${expireStr}</strong></div>
-                </div>
-                <div id="qrcode"></div>
-                <a href="sing-box://import-remote-profile?url=${encodeURIComponent(u.sub_url)}" class="btn btn-primary">Импорт в sing-box</a>
-                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${u.sub_url}'); alert('Ссылка скопирована!');">Скопировать подписку</button>
-            `;
-
-            new QRCode(document.getElementById("qrcode"), { text: u.sub_url, width: 160, height: 160 });
-
+            profileData = await res.json();
+            render();
         } catch (e) {
-            app.innerHTML = `<div class="error">Не удалось загрузить данные профиля.<br>Проверь ссылку.</div>`;
+            app.innerHTML = `<div class="error">Не удалось загрузить данные.<br>Проверь ссылку пользователя.</div>`;
         }
     }
 
-    loadProfile();
+    loadData();
 </script>
 </body>
 </html>
