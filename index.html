@@ -100,7 +100,10 @@
         // Диплинки
         const hiddifyLink = `hiddify://install-sub?url=${encodeURIComponent(subUrl)}`;
         const singboxLink = `sing-box://import-remote-profile?url=${encodeURIComponent(subUrl)}#${encodeURIComponent(current.name)}`;
-
+        const awgUrl = `${API_BASE}/api/user/${username}/amnezia.conf`;
+        const awgBtn = document.getElementById('awg-btn');
+        awgBtn.href = awgUrl;
+        awgBtn.setAttribute('download', `${username}_amnezia.conf`);
         app.innerHTML = `
             ${profileData.pc ? `
             <div class="tabs">
@@ -123,10 +126,11 @@
             <div id="qrcode"></div>
 
             <div class="btn-group">
-                <a href="${hiddifyLink}" class="btn btn-hiddify">🚀 Подключить в Hiddify</a>
-                <a href="${singboxLink}" class="btn btn-singbox">📦 Подключить в sing-box</a>
+                <a href="${hiddifyLink}" class="btn btn-hiddify">Подключить в Hiddify</a>
+                <a href="${singboxLink}" class="btn btn-singbox">Подключить в sing-box</a>
                 <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${subUrl}'); alert('Ссылка скопирована!');">📋 Скопировать ссылку</button>
-                <a href="${subUrl}" download="${current.name}.json" target="_blank" class="btn btn-secondary">💾 Скачать конфиг файлом</a>
+                <a href="${subUrl}" download="${current.name}.json" target="_blank" class="btn btn-secondary">Скачать конфиг файлом</a>
+                <a id="awg-btn" href="#" class="btn btn-secondary" download>Скачать AmneziaWG (.conf)</a>
             </div>
 
             <details>
