@@ -35,6 +35,7 @@
         .btn:active { transform: scale(0.98); }
         .btn-hiddify { background: #ff5722; color: #ffffff; }
         .btn-singbox { background: #38bdf8; color: #090d16; }
+        .btn-awg { background: #0284c7; color: #ffffff; }
         .btn-secondary { background: #1e293b; color: #cbd5e1; }
         .btn-tg { background: #0088cc; color: #ffffff; }
 
@@ -56,9 +57,10 @@
 
 <script>
     const API_BASE = "https://193.23.219.61.sslip.io:8443";
-    const TG_ADMIN = "https://t.me/DanMilk27"; // ВСТАВЬ СВОЙ ТЕЛЕГРАМ ДЛЯ СВЯЗИ
+    const TG_ADMIN = "https://t.me/DanMilk27";
 
     let profileData = null;
+    let currentUser = "";
     let activeDevice = "main"; // "main" или "pc"
 
     function formatGB(bytes) {
@@ -97,13 +99,11 @@
         const daysText = getDaysText(current.expiry);
         const subUrl = current.sub_url;
 
-        // Диплинки
+        // Диплинки и ссылки на скачивание
         const hiddifyLink = `hiddify://install-sub?url=${encodeURIComponent(subUrl)}`;
         const singboxLink = `sing-box://import-remote-profile?url=${encodeURIComponent(subUrl)}#${encodeURIComponent(current.name)}`;
-        const awgUrl = `${API_BASE}/api/user/${username}/amnezia.conf`;
-        const awgBtn = document.getElementById('awg-btn');
-        awgBtn.href = awgUrl;
-        awgBtn.setAttribute('download', `${username}_amnezia.conf`);
+        const awgUrl = `${API_BASE}/api/user/${encodeURIComponent(currentUser)}/amnezia.conf`;
+
         app.innerHTML = `
             ${profileData.pc ? `
             <div class="tabs">
@@ -126,19 +126,18 @@
             <div id="qrcode"></div>
 
             <div class="btn-group">
-                <a href="${hiddifyLink}" class="btn btn-hiddify">Подключить в Hiddify</a>
+                <a href="${hiddifyLink}" class="btn btn-hiddify">⚡ Подключить в Hiddify</a>
                 <a href="${singboxLink}" class="btn btn-singbox">Подключить в sing-box</a>
-                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${subUrl}'); alert('Ссылка скопирована!');">📋 Скопировать ссылку</button>
-                <a href="${subUrl}" download="${current.name}.json" target="_blank" class="btn btn-secondary">Скачать конфиг файлом</a>
-                <a id="awg-btn" href="#" class="btn btn-secondary" download>Скачать AmneziaWG (.conf)</a>
+                <a href="${awgUrl}" class="btn btn-awg" download="${currentUser}_amnezia.conf">🛡️ Скачать AmneziaWG (.conf)</a>
+                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${subUrl}'); alert('Ссылка скопирована!');">📋 Скопировать ссылку подписки</button>
+                <a href="${subUrl}" download="${current.name}.json" target="_blank" class="btn btn-secondary">💾 Скачать JSON конфиг</a>
             </div>
 
             <details>
                 <summary>📖 Инструкция: как подключиться</summary>
                 <ol>
-                    <li>Установите приложение <b>Hiddify</b> или <b>sing-box</b> на устройство.</li>
-                    <li>Нажмите оранжевую или синюю кнопку выше — профиль импортируется автоматически.</li>
-                    <li>Либо отсканируйте QR-код через камеру внутри приложения.</li>
+                    <li><b>Через Hiddify / sing-box:</b> нажмите оранжевую или голубую кнопку выше либо отсканируйте QR-код внутри приложения.</li>
+                    <li><b>Через AmneziaWG / Amnezia:</b> нажмите синюю кнопку «Скачать AmneziaWG», в приложении выберите «Добавить туннель из файла» и укажите скачанный <code>.conf</code>.</li>
                     <li>Выберите добавленный профиль и нажмите «Подключить».</li>
                 </ol>
             </details>
@@ -160,15 +159,15 @@
 
     async function loadData() {
         const app = document.getElementById("app");
-        const userKey = window.location.hash.replace("#", "").trim();
+        currentUser = window.location.hash.replace("#", "").trim();
 
-        if (!userKey) {
+        if (!currentUser) {
             app.innerHTML = '<div class="error">Пользователь не указан в адресной строке (#name).</div>';
             return;
         }
 
         try {
-            const res = await fetch(`${API_BASE}/api/user/${encodeURIComponent(userKey)}`);
+            const res = await fetch(`${API_BASE}/api/user/${encodeURIComponent(currentUser)}`);
             if (!res.ok) throw new Error("Пользователь не найден");
             profileData = await res.json();
             render();
